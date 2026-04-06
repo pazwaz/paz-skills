@@ -80,8 +80,41 @@ Every project produces these six artifacts:
 2. **Creative Brief** — HTML page hosted at `brief.pascalchampagne.com/[slug]`
 3. **tokens.css** — Shopify CSS custom properties mapped to brief decisions
 4. **DESIGN.md** — machine-readable design tokens for Claude Code / Cursor / AI agents
-5. **Notion Dev Handoff** — implementation notes, asset specs, theme-specific quirks
+5. **Dev Handoff (dev-handoff.html)** — styled HTML implementation guide with interactive
+   checklists, progress tracking, download links for tokens.css and DESIGN.md. Uses the
+   project's color palette. Hosted at `brief.pascalchampagne.com/[slug]/dev`
 6. **Walkthrough Video** — 7–10 min, CD narrates creative decisions to dev team
+
+### Creative Brief Structure (v2)
+
+The client-facing brief HTML page follows this section order:
+
+1. **Cover** — brand name, subtitle, meta (CD, agency, theme, date, version)
+2. **01 Brand Position** — mood statement, "is/is not" columns, context metrics
+3. **02 Color Palette** — swatches with hex, role, and rationale + palette rules
+4. **03 Typography** — heading + body specimens with type scale
+5. **04 Tone of Voice** — personality adjectives, do/don't examples with rationale
+6. **05 Page Structure** — full-page wireframe (SVG, click-to-enlarge lightbox) in
+   two-column layout with section-by-section descriptions + Dawn section types
+7. **06 Section Direction** — each section gets a card with:
+   - Mini SVG wireframe (brand-integrated style, using project palette)
+   - Structured key-value fields: Layout, Headline, Subtext, CTA, Key rules
+   - Implementation note (Dawn section type + scheme)
+   - Priority badge (High/Medium/Low)
+   - Dark-preview variant for Scheme 2 sections (with adequate text contrast)
+8. **07 Photography** — background treatment, style reference, asset guidance
+9. **08 Interactive Elements** — live rendered buttons, links, form inputs, and
+   product card hover states with full specs
+10. **09 Theme Constraints** — native vs. custom CSS breakdown with effort estimates
+11. **10 Deliverables** — explains tokens.css, DESIGN.md, and dev-handoff.html with
+    usage instructions (where to place, how AI tools read them)
+12. **11 Decisions to Confirm** — numbered items with context + question format.
+    Warm, explanatory tone. No jargon. Replaces the old QA Appendix.
+
+**Important:** QA scores, standards compliance checklists, and anti-pattern checks
+are internal tools — they stay in the pipeline JSON files (`04-qa-report.json`),
+never shown to clients. The "Decisions to Confirm" section replaces the old
+"CD Attention Items" with client-friendly language.
 
 ## Design Standards (Global)
 
@@ -195,13 +228,52 @@ The machine-readable design document that AI coding agents (Claude Code, Cursor,
 Windsurf) read automatically when placed in a project root.
 
 Required sections:
-- **Brand Position** — 3 sentences establishing the creative stance
-- **Palette** — role, hex, rationale for each color
-- **Typography** — families, weights, providers, scale, rationale
-- **Tone** — personality adjectives, do/don't examples
-- **Component Notes** — section-by-section styling guidance
-- **Constraints** — what the Shopify theme prevents or limits
-- **Anti-Patterns** — project-specific things to avoid
+- **How to Use This File** — plain-language instructions for three audiences:
+  developers using AI tools, developers without AI tools, and project managers.
+  Must be the first section after the header. Written in clear, non-technical
+  language so anyone opening the file knows exactly what it's for.
+- **Brand Position** — 3 sentences establishing the creative stance, plus a
+  "What this means for code" one-liner that translates brand into implementation.
+- **Palette** — table with role, name, hex, RGB, usage, and rationale per color.
+  Include Color Rules sub-section.
+- **Typography** — families, weights, providers, scale, rationale. Include
+  Typography Rules sub-section.
+- **Tone** — personality adjectives, do/don't examples with rationale.
+- **Component Notes** — section-by-section styling guidance. Include plain-language
+  explanations for any entry that assumes theme familiarity (e.g., why "Image with
+  text" instead of "Image banner", what "dynamic checkout buttons" are).
+- **Constraints** — what the Shopify theme prevents or limits. Each constraint
+  includes a technical description followed by an italicized *In plain language:*
+  explanation written for developers who have never used the theme before.
+- **Anti-Patterns** — project-specific things to avoid, with brand-specific
+  rationale (not generic best practice).
+
+## Dev Handoff Structure
+
+The step-by-step implementation guide for the dev team. Generated as a styled
+HTML page (dev-handoff.html) — not Markdown. Uses the project's color palette,
+includes interactive checklists with progress tracking, and provides download
+links for tokens.css and DESIGN.md. Must be usable by a junior developer who
+has never worked with the theme before.
+
+Required sections:
+- **Quick Glossary** — defines all theme-specific terms used in the document
+  (e.g., Dawn, Scheme, tokens.css, Section, "Dawn native", dynamic checkout
+  buttons, DESIGN.md). Placed at the very top, before any instructions.
+- **What You're Building** — 2-3 sentences about the project and links to the
+  other deliverables (brief page, tokens.css, DESIGN.md).
+- **Quick Start Checklist** — numbered steps: Theme Setup, Fonts, Color Schemes,
+  Homepage Sections (table with order, section type, scheme, padding),
+  Section-Specific Settings, Product Page Template.
+- **Custom CSS Notes** — table explaining each tokens.css override (what it does,
+  how many lines, why the theme can't do it natively).
+- **What NOT to Do** — each rule includes a bold directive followed by a
+  plain-language *Why:* explanation. The "why" should be understandable by a
+  developer who has no design background — explain what would go wrong visually
+  or brand-wise if they broke the rule.
+- **Assets Needed from Client** — checklist of files the dev team needs.
+- **Questions for Client** — open items needing client answers before build.
+- **Timeline Recommendation** — phase/scope/estimate table.
 
 ## Session Protocol
 
