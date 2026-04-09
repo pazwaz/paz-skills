@@ -1,17 +1,18 @@
 ---
 name: creative-direction
 description: >
-  End-to-end creative direction for e-commerce projects, specializing in Shopify.
+  End-to-end creative direction for e-commerce projects. Platform-agnostic
+  methodology (Shopify, Lightspeed, WooCommerce, etc.) with deep Shopify expertise.
   Covers brand research, theme analysis, brief generation, design system output
   (tokens.css + DESIGN.md), and dev handoff — all with a human Creative Director
   as the final approval gate. Use this skill whenever the user mentions creative
-  briefs, brand direction, Shopify theme styling, design tokens, client intake,
+  briefs, brand direction, theme styling, design tokens, client intake,
   agency handoff, e-commerce visual identity, or any task involving translating
   a brand's identity into actionable design specifications for developers. Also
   trigger when the user says "run the pipeline", "new client project", "generate
   a brief", "CD review", or references the agent sequence (Intel → Theme → Brief
   → QA → CD approval). Even partial tasks — like "audit this brand" or "analyze
-  this Shopify theme" — should trigger this skill for the relevant phase.
+  this theme" — should trigger this skill for the relevant phase.
 ---
 
 # Creative Direction for E-Commerce
@@ -24,19 +25,24 @@ guesswork and interpretation from the build process.
 
 The product is never a website. It's a market position made tangible.
 
-A Shopify theme is a constraint, not a creative sandbox. The constraint should
+A theme is a constraint, not a creative sandbox. The constraint should
 be the client's competitive reality, not the theme's defaults. Every creative
 decision must be traceable to a strategic rationale — "it looks good" is not
 direction, it's preference.
 
+**Pricing philosophy:** Value-based, not hourly. Price what the agency avoids
+(20–40 hours of design interpretation, revision cycles, brand drift) — not
+what it costs to deliver (~5 hours). The deliverable replaces guesswork at
+scale; that's what agencies pay for.
+
 ## When to Use This Skill
 
 - New client project intake and brand research
-- Shopify theme analysis and constraint mapping
+- Theme analysis and constraint mapping (any e-commerce platform)
 - Creative brief generation from research inputs
 - Design system output: tokens.css, DESIGN.md
 - QA review of brief against standards
-- Dev handoff preparation (Notion page, walkthrough)
+- Dev handoff preparation (HTML page with interactive checklists)
 - Post-launch creative retainer work
 - Any request to "run the pipeline" or "start a project"
 
@@ -67,7 +73,7 @@ Load the relevant reference file for the agent you're executing:
 | Agent | Reference | Trigger |
 |-------|-----------|---------|
 | Intel Agent | [references/intel-agent.md](references/intel-agent.md) | Brand research, competitor analysis, audience signals |
-| Theme Analyst | [references/theme-analyst.md](references/theme-analyst.md) | Shopify theme constraint mapping |
+| Theme Analyst | [references/theme-analyst.md](references/theme-analyst.md) | E-commerce theme constraint mapping |
 | Brief Generator | [references/brief-generator.md](references/brief-generator.md) | Assembling the creative brief |
 | QA Agent | [references/qa-agent.md](references/qa-agent.md) | Scoring and flagging the brief |
 | Orchestrator | [references/orchestrator.md](references/orchestrator.md) | Full pipeline coordination |
@@ -77,13 +83,24 @@ Load the relevant reference file for the agent you're executing:
 Every project produces these six artifacts:
 
 1. **Brand Audit** — internal reference document from Intel Agent
-2. **Creative Brief** — HTML page hosted at `brief.pascalchampagne.com/[slug]`
-3. **tokens.css** — Shopify CSS custom properties mapped to brief decisions
+2. **Creative Brief** — HTML page hosted at `creative.pascalchampagne.com/[slug]/`
+3. **tokens.css** — CSS custom properties mapped to brief decisions (theme-agnostic)
 4. **DESIGN.md** — machine-readable design tokens for Claude Code / Cursor / AI agents
 5. **Dev Handoff (dev-handoff.html)** — styled HTML implementation guide with interactive
    checklists, progress tracking, download links for tokens.css and DESIGN.md. Uses the
-   project's color palette. Hosted at `brief.pascalchampagne.com/[slug]/dev`
-6. **Walkthrough Video** — 7–10 min, CD narrates creative decisions to dev team
+   project's color palette. Hosted at `creative.pascalchampagne.com/[slug]/dev`
+6. **Walkthrough Video** — 3–4 min Loom, CD narrates creative decisions to dev team
+
+### Three-Link Delivery Model
+
+Each project shares exactly 3 links with the agency:
+
+1. **Creative Brief** (client-facing) — `creative.pascalchampagne.com/[slug]/`
+2. **Dev Handoff** (dev-facing, with DESIGN.md + tokens.css downloads) — `creative.pascalchampagne.com/[slug]/dev`
+3. **Dev Feedback Form** — `creative.pascalchampagne.com/feedback/`
+
+Clean audience separation: client sees the brief, dev team gets the handoff + assets,
+feedback form closes the loop.
 
 ### Creative Brief Structure (v2)
 
@@ -188,8 +205,9 @@ checks every brief against this list.
 
 ## tokens.css Structure
 
-The design tokens file maps creative brief decisions to Shopify CSS custom
-properties. It is dropped into `theme/assets/` and referenced in `theme.liquid`.
+The design tokens file maps creative brief decisions to CSS custom properties.
+For Shopify, it's dropped into `theme/assets/` and referenced in `theme.liquid`.
+For other platforms, adapt the integration method accordingly.
 
 ```css
 :root {
@@ -288,6 +306,20 @@ When working in Claude Code, follow the session protocol:
    - Git commit with descriptive message
    - Confirm to CD: what's in the commit, what's next
 
+## Standards Library
+
+The standards library is the system's compounding asset. It starts with ~20 global
+rules and grows with every project through the training loop.
+
+- **Global standards** (`standards/global.md`) — non-negotiable rules checked on every project
+- **Anti-patterns** (`standards/anti-patterns.md`) — known bad patterns flagged by QA
+- **Industry profiles** (`standards/industries/`) — category-specific rules layered on top
+
+Standards never get deleted — only marked superseded with rationale. The library
+is what makes brief #50 dramatically better than brief #1 without Pascal spending
+more time. It's also a deliverable: Retainer and Partner tiers include access to
+a project-specific or custom standards library.
+
 ## Training Loop
 
 Every CD correction becomes a permanent learning:
@@ -303,11 +335,46 @@ The system gets better with every project. Standards compound.
 
 ## Pricing Reference (CAD)
 
-| Tier | Price | Includes |
-|------|-------|----------|
-| Brief Sprint | $950 | One-time creative direction package |
-| Studio Retainer | $3,200/mo | Ongoing CD + monthly optimization |
-| Brand Partner | $6,500/mo | Full strategic partnership |
+| Tier | Price | Scope |
+|------|-------|-------|
+| Brief Sprint | $1,500/project | 1 brief, 1 revision round, 48h delivery |
+| Studio Retainer | $3,500/month | Up to 3 briefs, 2 revision rounds/brief, 24h delivery, monthly strategy call, standards library |
+| Brand Partner | $6,500/month | Up to 8 briefs, 2 revision rounds/brief, client onboarding calls, quarterly brand strategy, custom standards library, white-label, exclusive territory |
+
+**Pricing methodology:** Value-based. The Sprint replaces 20–40 hours of agency
+design interpretation time. Internal add-on rates and negotiation floors are
+documented separately in `plan/pricing-reference.md` — never shown publicly.
+Package names ("Brief Sprint", "Studio Retainer", "Brand Partner") stay in
+English even in French communications — they function as brand names.
+
+## Client Intake & Forms
+
+All forms are **self-hosted branded HTML** on Netlify with Netlify Forms backend.
+No third-party form tools (Tally, Typeform, etc.) — consistent brand experience
+on the same domain as deliverables.
+
+- **Intake form** (`creative.pascalchampagne.com/intake/`) — 5-section form
+  covering brand basics, visual direction, audience, content/assets, and project
+  scope. Generated per-project when possible: pre-fills known data from prior
+  email exchange, only asks for what's missing. A generic "cold start" version
+  exists for direct discovery leads.
+- **Feedback form** (`creative.pascalchampagne.com/feedback/`) — 3-question dev
+  feedback form sent with delivery. If no response within follow-up window,
+  send a reminder via agency contact.
+- **Contact form** — inline on the landing page with tier pre-selection from
+  pricing cards. Pre-qualifies leads before first exchange.
+
+### Language Handling
+
+Per-project language: Pascal specifies EN, FR, or both per project. All forms
+and deliverables support EN/FR toggle (using `data-fr` attributes + JS swap).
+Language persists via `localStorage` across form → thank-you page redirects.
+
+**French terminology decisions:**
+- "Référentiel de standards" (not "librairie" or "bibliothèque")
+- "Transfert" for handoff in descriptions, but "Dev Handoff" stays as product name
+- "Appel stratégique" (not "appel stratégie")
+- Package names stay English in French version
 
 ## Industry Profiles
 
