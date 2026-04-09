@@ -53,8 +53,13 @@ format, and a quality benchmark. The Creative Director (human) is the final
 approval gate — never bypassed.
 
 ```
-Client Intake → Intel Agent → Theme Analyst → Brief Generator → QA Agent → CD Review → Deploy
+Service Agreement → Client Intake → Intel Agent → Theme Analyst → Brief Generator → QA Agent → CD Review → Deploy
 ```
+
+**First-time agency onboarding:** Before any creative work, generate a pre-filled
+service agreement (EN or FR) using `python scripts/generate-agreement-pdf.py [en|fr|both]`.
+The PDF includes branded styling, terracotta placeholder fields, and signature areas.
+Agreement defines scope, revision limits, and payment terms upfront.
 
 ### Pipeline Rules
 
