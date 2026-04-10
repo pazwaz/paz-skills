@@ -70,6 +70,11 @@ Agreement defines scope, revision limits, and payment terms upfront.
    conflict, escalate to CD — don't pick a side.
 5. **Every correction becomes a standards entry.** The system learns from
    every project through the training loop.
+6. **CD tone pass before client delivery.** Pipeline agents write analytically;
+   client-facing deliverables need warm, diplomatic language. Remove critical
+   framing, unverified statistics, and internal jargon (e.g., "T2 violation")
+   before publishing. The brief should make clients feel good about their
+   brand while still being honest about the direction.
 
 ## Agent Sequence
 
@@ -125,8 +130,9 @@ The client-facing brief HTML page follows this section order:
    - Priority badge (High/Medium/Low)
    - Dark-preview variant for Scheme 2 sections (with adequate text contrast)
 8. **07 Photography** — background treatment, style reference, asset guidance
-9. **08 Interactive Elements** — live rendered buttons, links, form inputs, and
-   product card hover states with full specs
+9. **08 Interactive Elements** — 2-row × 3-column grid:
+   Row 1: Primary CTA, Secondary CTA, Product Card Hover (live demos + spec tables)
+   Row 2: Text Link, Form Input, Rationale (design logic summary)
 10. **09 Theme Constraints** — native vs. custom CSS breakdown with effort estimates
 11. **10 Deliverables** — explains tokens.css, DESIGN.md, and dev-handoff.html with
     usage instructions (where to place, how AI tools read them)
@@ -285,9 +291,18 @@ Required sections:
   buttons, DESIGN.md). Placed at the very top, before any instructions.
 - **What You're Building** — 2-3 sentences about the project and links to the
   other deliverables (brief page, tokens.css, DESIGN.md).
+- **Files** — download cards for tokens.css, DESIGN.md, and a "View Creative
+  Brief" link (opens in new tab via `target="_blank"`).
 - **Quick Start Checklist** — numbered steps: Theme Setup, Fonts, Color Schemes,
   Homepage Sections (table with order, section type, scheme, padding),
   Section-Specific Settings, Product Page Template.
+- **Section-by-Section** — implementation details for each homepage section. Each
+  section card includes a **mini SVG wireframe thumbnail** on the left (matching
+  the brief's visual style, using project palette colors) and settings/config
+  details on the right. Dark cards for Scheme 2 sections.
+- **Product Pages** — Collection page (grid, sorting, editorial banners) and PDP
+  (layout, price styling, CTA, collapsible content). Each with wireframe
+  thumbnails matching the homepage section cards.
 - **Custom CSS Notes** — table explaining each tokens.css override (what it does,
   how many lines, why the theme can't do it natively).
 - **What NOT to Do** — each rule includes a bold directive followed by a
