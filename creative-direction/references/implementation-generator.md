@@ -101,25 +101,48 @@ with translation keys for all sections. Structure:
 }
 ```
 
-### Step 5: Generate preview page
-Create a client-facing `preview/index.html` that renders all generated sections as a
-scrollable static HTML page. This is the client's primary tool for envisioning their
-future website during the approval/revision process.
+### Step 5: Generate multi-page preview system
+Create a 6-page client-facing preview system in `preview/`. This is the client's primary
+tool for envisioning their future website during the approval/revision process.
 
-**Structure:**
+**Pages:**
+| Page | File | Content | Active nav |
+|------|------|---------|------------|
+| Homepage | `preview/index.html` | All homepage sections | None |
+| Collection | `preview/collection.html` | Collection hero + filter bar + product grid | Boutique |
+| Product | `preview/product.html` | Breadcrumb + PDP (gallery, variants, accordion) + related products | None |
+| About | `preview/about.html` | Brand story + timeline + values + philosophy + newsletter | Notre histoire |
+| Blog Listing | `preview/blog.html` | Blog hero + featured posts (large) + post grid (small) | Blog |
+| Blog Post | `preview/blog-post.html` | Breadcrumb + article (featured image, body, blockquote, tags) + related posts | None |
+
+**Shared elements on ALL pages:**
+1. **Favicon**: `<link rel="icon" type="image/svg+xml" href="/favicon.svg">` in `<head>`
 1. **Auth gate**: `sessionStorage.getItem('[project]-auth')!=='1'` redirects to `../`
-2. **Sticky top bar**: "Theme Package Preview" badge + project name on the left, "Creative Brief" link (opens new tab) on the right. No section counts, no validation badges, no dev links.
-3. **Sections flow seamlessly** — no section separators, no labels, no scheme badges. The preview should read like a real website.
-4. **One exception**: Before the Product Detail Page section, insert a single centered label bar saying "Product Detail Page" (since it represents a different page context).
-5. **Placeholder content**: Use French-first defaults from the brief presets. Image placeholders are clean gradient blocks with no descriptive text (clients shouldn't see "upload lifestyle photo here" — they should see a neutral placeholder).
-6. **Gated sections**: Show placeholder with "En attente d'assets" badge (not dev jargon).
-7. **Footer**: Project name + section count + validation status + "Creative Direction — Pascal Champagne"
+2. **Compact sticky preview bar** (z-index 1001, top: 0): "Theme Package Preview" badge +
+   brand name + "by [Agency Name]" placeholder on the left, "Creative Brief" link (opens
+   new tab) on the right. No page navigation in the bar. White-label — no "Pascal
+   Champagne" or "Creative Direction" branding.
+3. **Sticky site header** (z-index 1000, top: 33px): Brand name as text logo (heading font),
+   navigation menu, cart icon. Only menu items with preview pages are clickable links;
+   others render as disabled/muted `<span>` elements. Active page gets accent color +
+   underline via `.active` class.
+4. **Announcement bar**: Key brand differentiators (e.g., certifications, origin, values).
+5. **Site footer**: 4-column layout — brand description, shop links, about links, social
+   icons. Payment badges + copyright in bottom row. Footer links match nav (clickable
+   for pages with previews, `<span>` for others).
+6. **Sections flow seamlessly** — no section separators, no labels, no scheme badges. Each
+   page should read like a real website.
+
+**Content guidelines:**
+- Use project language (French-first for FR projects). Image placeholders are clean blocks
+  with subtle descriptive text (e.g., "Product image", "Featured image").
+- Gated sections: Show placeholder with "En attente d'assets" badge (not dev jargon).
+- Blog content should be brand-appropriate: lifestyle, behind-the-scenes, values/mission.
+- No icons/emojis in values sections — use clean text-only cards.
 
 **CSS extraction**: Pull CSS from each `{% stylesheet %}` block in the Liquid files. Use
 CSS custom properties mapped to the project's color tokens. Load fonts from Google Fonts.
 Responsive breakpoints must match the Liquid sections.
-
-**No icons/emojis in values sections** — use clean text-only cards.
 
 ### Step 6: Generate implementation guide
 Create `IMPLEMENTATION.md` documenting:
@@ -128,6 +151,37 @@ Create `IMPLEMENTATION.md` documenting:
 - Asset dependencies (images, fonts — what the dev needs to source)
 - Gated sections (sections waiting on missing assets, with placeholders)
 - Customization notes (what's safe to change vs. what breaks the creative direction)
+
+### Step 7: Generate AI coding rules files
+Create per-project rules files that auto-configure AI coding tools (Cursor, Claude Code,
+Windsurf, GitHub Copilot, Cline) to follow the creative direction.
+
+1. **Load the `ai-rules.md` template** and populate placeholders from:
+   - `brief_json.palette` → Color Rules table and palette summary
+   - `brief_json.palette_rules` → Project-specific color enforce rules
+   - `brief_json.typography` → Font families, weights, type rules
+   - `brief_json.tone_of_voice` → Personality, sounds like / never sounds like
+   - `theme_analysis_json.constraints` → Theme-specific constraints (top 3-5)
+   - Anti-patterns from the brief → Brand-specific anti-patterns with rationale
+
+2. **Keep it concise** — under 150 lines, under 3K tokens. AI tools have limited context
+   for rules files. Reference DESIGN.md for complete specs instead of duplicating tables.
+
+3. **Priority order** if content exceeds the limit: color rules → typography rules →
+   anti-patterns → theme constraints → tone of voice.
+
+4. **Generate the canonical file**: `ai-rules/ai-rules.md`
+
+5. **Copy to tool-specific filenames** (identical content):
+   - `ai-rules/.cursorrules` (Cursor)
+   - `ai-rules/CLAUDE.md` (Claude Code)
+   - `ai-rules/.windsurfrules` (Windsurf)
+   - `ai-rules/.clinerules` (Cline)
+   - `ai-rules/.github/copilot-instructions.md` (GitHub Copilot)
+
+6. **Generate `ai-rules/README.txt`** — 10-line plain text explaining: copy ONE file to
+   your project root, pick the one matching your tool, all identical content, add your
+   own rules at the bottom under "Team Rules."
 
 ## LAYER 4 — Standards enforcement
 
@@ -179,8 +233,26 @@ Deliver a `theme_package` object:
     "default": "en.default.json or fr.default.json",
     "additional": "fr.json or en.json"
   },
-  "preview_page": "preview/index.html",
+  "preview_pages": [
+    "preview/index.html",
+    "preview/collection.html",
+    "preview/product.html",
+    "preview/about.html",
+    "preview/blog.html",
+    "preview/blog-post.html"
+  ],
   "implementation_guide": "IMPLEMENTATION.md",
+  "ai_rules": {
+    "canonical": "ai-rules/ai-rules.md",
+    "tool_copies": [
+      "ai-rules/.cursorrules",
+      "ai-rules/CLAUDE.md",
+      "ai-rules/.windsurfrules",
+      "ai-rules/.clinerules",
+      "ai-rules/.github/copilot-instructions.md"
+    ],
+    "readme": "ai-rules/README.txt"
+  },
   "gated_sections": [
     {
       "section": "section name",
@@ -192,7 +264,8 @@ Deliver a `theme_package` object:
     "total_files": [number],
     "validated": [number],
     "failed": [number],
-    "gated": [number]
+    "gated": [number],
+    "ai_rules_files": 6
   }
 }
 ```

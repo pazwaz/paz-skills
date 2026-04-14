@@ -79,6 +79,85 @@ Agreement defines scope, revision limits, and payment terms upfront.
    Liquid files are positioned as starting points for dev teams. They import and
    customize — we don't debug their implementation. Revision rounds cover creative
    adjustments (palette, typography, layout), not code issues.
+8. **Shared sections are canonical, not generated per page.** When building multi-page
+   previews, generate shared HTML (preview bar, announcement bar, header, footer) once
+   on the homepage. Copy identically to all other pages. Never regenerate per page —
+   differences accumulate and break the cohesive feel. Run the pre-flight checklist
+   to verify consistency before deploy.
+
+### Session-Split Triggers
+
+A full project pipeline is too large for a single Claude Code session. The pipeline has
+two natural breakpoints where a session should end with a handoff prompt.
+
+**Checkpoint 1 — After brief + deliverables build (Step 8)**
+When the creative brief, dev handoff, DESIGN.md, and tokens.css are built and the CD
+revision pass is complete, STOP and say:
+
+> **Session checkpoint.** Brief and deliverables are built and reviewed. Remaining work:
+> Theme Package generation, preview pages, deploy, and delivery email.
+>
+> **Start next session with:**
+> "Continue [project-id]. Build Theme Package, generate 6-page preview, deploy to
+> creative.pascalchampagne.com/[slug]/, and generate the delivery email."
+
+**Checkpoint 2 — After preview build + deploy (Step 10)**
+When preview pages are built, Theme Package is zipped, and the site is deployed, STOP
+and say:
+
+> **Session checkpoint.** All deliverables deployed and live. Remaining work:
+> mobile QA, walkthrough video script, delivery email review.
+>
+> **Start next session with:**
+> "Continue [project-id]. Run mobile QA, finalize delivery email, and prep for send."
+
+**When to skip checkpoints:** If Pascal explicitly says "full pipeline" or "don't stop",
+run through without checkpoints. The default is to checkpoint.
+
+### Pre-Flight Checklist
+
+Run this checklist after build and before deploy. Every item must pass. If any item fails,
+fix it before deploying — never deploy with known failures.
+
+**Shared section consistency:**
+- [ ] Preview bar HTML is identical across all 6 preview pages
+- [ ] Site header HTML is identical across all 6 preview pages
+- [ ] Footer HTML is identical across all 6 preview pages
+- [ ] Any other shared bars (announcement, etc.) are identical across all pages
+- [ ] Nav active state is correct on each page
+
+**Auth and links:**
+- [ ] Gate page uses `localStorage` (not `sessionStorage`)
+- [ ] All preview pages check `localStorage` for auth
+- [ ] Gate page links use `target="_blank"`
+- [ ] Preview bar "Creative Brief" link uses `target="_blank"`
+- [ ] Cross-links between deliverables all work (brief → preview, dev → preview, etc.)
+
+**Theme Package:**
+- [ ] ZIP file exists at `site/[slug]/assets/[slug]-theme-package.zip`
+- [ ] ZIP contains: `sections/`, `locales/`, `ai-rules/`, `README.md`
+- [ ] Dev handoff "Theme Package" download link points to actual ZIP (not "Coming Soon")
+- [ ] AI rules files are populated with project-specific values (not template placeholders)
+
+**Assets and downloads:**
+- [ ] `tokens.css` exists at `site/[slug]/assets/tokens.css`
+- [ ] `DESIGN.md` exists at `site/[slug]/assets/DESIGN.md`
+- [ ] Dev handoff download links for tokens.css and DESIGN.md work
+
+**Deploy target:**
+- [ ] Deploy command is `netlify deploy --dir=site --prod`
+- [ ] NEVER `netlify deploy --dir=site/[slug]` (this nukes the entire site)
+
+**Delivery email:**
+- [ ] Generated from canonical template (`cd-system/comms/delivery-email.md`)
+- [ ] Includes Theme Package explanation
+- [ ] Includes AI coding rules mention
+- [ ] Includes missing assets section (customized per project)
+- [ ] Includes revision round note and feedback form link
+
+**Gate page:**
+- [ ] Footer reads "Prepared for [Agency Name] by Pascal Champagne"
+- [ ] Three buttons: Brief (primary), Dev Handoff (secondary), Theme Preview (secondary)
 
 ## Agent Sequence
 
@@ -112,10 +191,32 @@ Every project produces these artifacts:
    not deploy as-is. Saves 10–20 hours of design-to-code translation per project.
    Non-Shopify projects receive the specification stack (items 1–6) without code generation.
    Delivered as a downloadable ZIP on the Dev Handoff page, containing `sections/`,
-   `locales/`, and a `README.md` with install instructions.
-8. **Theme Preview** — client-facing HTML page rendering all generated sections with real
-   CSS, placeholder content, and project typography. No dev chrome (no section labels,
-   scheme badges, or filenames). Used for client approval/revision cycle.
+   `locales/`, `ai-rules/` (AI coding rules files), and a `README.md` with install
+   instructions. The `ai-rules/` folder contains identical rules files for each major
+   AI coding tool (.cursorrules, CLAUDE.md, .windsurfrules, .clinerules,
+   .github/copilot-instructions.md). Devs copy the one matching their tool into the
+   theme project root — it auto-loads at session start and enforces the creative
+   direction (palette, typography, spacing, anti-patterns) without manual referencing.
+8. **Theme Preview** — multi-page client-facing HTML preview system. Each project gets
+   6 pages: Homepage, Collection, Product, About, Blog Listing, Blog Post. All pages
+   share a compact sticky preview bar (brand name + "by [Agency Name]" placeholder +
+   Creative Brief link), a sticky site header with logo (brand name in heading font) and
+   working navigation (only pages with previews are clickable; others are disabled/muted),
+   an announcement bar, and a full site footer (4-column: brand, shop links, about links,
+   social icons + payment badges). No dev chrome (no section labels, scheme badges, or
+   filenames). The preview bar is white-label — no "Creative Direction" or "Pascal
+   Champagne" branding. Blog pages use brand-appropriate content (lifestyle, behind-the-
+   scenes, values). Used for client approval/revision cycle.
+
+   **Architectural rules for multi-page previews:**
+   - **Canonical source:** The homepage is the single source of truth for all shared
+     sections. Generate shared HTML (preview bar, site header, footer, and any shared
+     bars) once on the homepage, then copy identically to all other pages. Never
+     regenerate shared sections per page — copy the exact HTML block.
+   - **Active nav state:** Every page must set the correct active class on its nav link.
+   - **Product card links:** Cards in collection/featured grids must link to `product.html`.
+   - **Preview bar:** White-label — "by [Agency Name]", not "by Pascal Champagne".
+     "Creative Brief" link opens in new tab (`target="_blank"`).
 
 ### Four-Link Delivery Model
 
@@ -138,11 +239,18 @@ After authentication, users see a three-button landing:
 2. **View Dev Handoff** (secondary button) — links to `dev/`
 3. **View Theme Preview** (secondary button) — links to `preview/`
 
-Auth uses `sessionStorage` (simple hash gate — not security-critical, prevents casual browsing).
-All sub-pages check `sessionStorage` and redirect to gate if not authenticated.
+Auth uses `localStorage` (simple hash gate — not security-critical, prevents casual browsing).
+All sub-pages check `localStorage` and redirect to gate if not authenticated.
+**Must use `localStorage`, never `sessionStorage`** — gate links open in new tabs
+(`target="_blank"`), and `sessionStorage` doesn't persist across tabs.
 Gate UX: clicking a button before authenticating shows the password form, then redirects
 directly to the chosen page after password entry (no double-click). The `pendingDest`
 pattern stores the intended destination before auth.
+
+**Gate page rules:**
+- All deliverable links must use `target="_blank"` — the gate page is a hub users keep open
+- Footer reads "Prepared for [Agency Name] by Pascal Champagne" (agency name first, Pascal as resource)
+- Auth key: `localStorage.setItem('[project-slug]-auth', '1')`
 
 ### Cross-Linking Between Deliverables
 
@@ -151,7 +259,9 @@ Each deliverable links to the others so the recipient always has access to the f
 - **Creative Brief** nav bar includes "Theme Preview →" link (opens new tab, primary color)
 - **Dev Handoff** files section includes a "View Theme Preview" card alongside the
   Creative Brief and download cards
-- **Theme Preview** top bar includes "Creative Brief" link (opens new tab)
+- **Theme Preview** compact top bar includes brand name, "by [Agency Name]" placeholder,
+  and "Creative Brief" link (opens new tab). No page navigation in the bar — users
+  navigate via the site header menu instead
 
 ### Creative Brief Structure (v2)
 
@@ -175,8 +285,10 @@ The client-facing brief HTML page follows this section order:
    Row 1: Primary CTA, Secondary CTA, Product Card Hover (live demos + spec tables)
    Row 2: Text Link, Form Input, Rationale (design logic summary)
 10. **09 Theme Constraints** — native vs. custom CSS breakdown with effort estimates
-11. **10 Deliverables** — explains tokens.css, DESIGN.md, and dev-handoff.html with
-    usage instructions (where to place, how AI tools read them)
+11. **10 Deliverables** — 5 cards in a 3-column grid: tokens.css, DESIGN.md, Dev Handoff,
+    Theme Preview, AI Rules. Below the grid: a full-width "Working with AI tools?" CTA
+    card explaining the AI rules files. Each card has an icon, title, description, and
+    action hint.
 12. **11 Decisions to Confirm** — numbered items with context + question format.
     Warm, explanatory tone. No jargon. Replaces the old QA Appendix.
 
@@ -254,6 +366,26 @@ checks every brief against this list.
 - **The Vague Brief** — "Clean and modern" / "minimal but impactful" / "elevated
   feel." These mean nothing. Every direction must be specific enough that two
   different developers would make the same visual choice.
+- **The Phantom Photo** — Section directions that describe specific imagery
+  (e.g., "Laurence in the atelier") when the assets don't exist. Photography-
+  dependent sections must be marked GATED inline in the direction, not just in
+  a separate review flag. Devs implement what they read.
+- **The Silent Font Trend** — Specifying a Google Font that passes the static
+  blocklist (X4) but is trending toward ubiquity (e.g., DM Sans in 2024–25).
+  Note a backup alternative when the primary is trending (>50% YoY growth).
+  Soft flag, not a deduction.
+- **The Haiku CTA** — Tone examples that are purely atmospheric/editorial with
+  no commerce-functional variant. Every brief needs tone at two registers:
+  editorial (hero, about, brand story) and commerce (CTAs, product pages,
+  emails, collection headers). Both must sound like the brand.
+- **The Assumption Brief** — Proceeding with audit-derived positioning when
+  intake fields affecting strategy (anti-brand, aspirational brands, persona)
+  are blank. For real projects: pause, generate a clarification request. For
+  training: flag as process deviation.
+- **The Luxury Whisper** — Typography ambition (Cormorant, Bodoni, Playfair at
+  editorial scale) overshooting the brand's price point. High-contrast editorial
+  serifs flagged for brands under $50 AOV unless CD explicitly confirms upward
+  positioning intent.
 
 ## tokens.css Structure
 
@@ -301,7 +433,10 @@ Required sections:
 - **How to Use This File** — plain-language instructions for three audiences:
   developers using AI tools, developers without AI tools, and project managers.
   Must be the first section after the header. Written in clear, non-technical
-  language so anyone opening the file knows exactly what it's for.
+  language so anyone opening the file knows exactly what it's for. For AI tool
+  users, mention the AI rules files from the Theme Package — devs can copy the
+  matching rules file to their project root for automatic enforcement instead
+  of manually referencing DESIGN.md each session.
 - **Brand Position** — 3 sentences establishing the creative stance, plus a
   "What this means for code" one-liner that translates brand into implementation.
 - **Palette** — table with role, name, hex, RGB, usage, and rationale per color.
@@ -333,11 +468,13 @@ Required sections:
 - **What You're Building** — 2-3 sentences about the project and links to the
   other deliverables (brief page, tokens.css, DESIGN.md).
 - **Files** — download cards in this order: Theme Package ZIP (highlighted, accent
-  border — most prominent), tokens.css, DESIGN.md, "View Creative Brief" link,
-  and "View Theme Preview" link. All external links open in new tabs via
-  `target="_blank"`. The Theme Package card is followed by a "Quick Install"
+  border — most prominent), tokens.css, DESIGN.md, AI Rules Files, "View Creative
+  Brief" link, and "View Theme Preview" link. All external links open in new tabs
+  via `target="_blank"`. The Theme Package card is followed by a "Quick Install"
   guide (numbered steps: unzip, copy sections, merge locales, add via Theme
-  Editor, upload tokens.css).
+  Editor, upload tokens.css). The AI Rules Files card explains: "If your team uses
+  AI coding tools, copy the matching file from `ai-rules/` to your project root."
+  Include a tool→filename mapping. Mark this step as optional in the checklist.
 - **Quick Start Checklist** — numbered steps: Theme Setup, Fonts, Color Schemes,
   Homepage Sections (table with order, section type, scheme, padding),
   Section-Specific Settings, Product Page Template.
@@ -473,7 +610,7 @@ cd-system/
 │       ├── index.html     # Gate page (password + 3-button landing)
 │       ├── brief/         # Creative brief (HTML)
 │       ├── dev/           # Dev handoff (HTML)
-│       ├── preview/       # Theme preview (HTML, Shopify only)
+│       ├── preview/       # Theme preview (6 pages: index, collection, product, about, blog, blog-post)
 │       └── assets/        # DESIGN.md, tokens.css
 ├── comms/                 # Communication templates
 ├── contracts/             # Service agreement
