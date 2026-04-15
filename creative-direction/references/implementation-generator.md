@@ -270,7 +270,84 @@ Deliver a `theme_package` object:
 }
 ```
 
-## LAYER 6 — Escalation triggers
+## LAYER 6 — Theme Package QA standards (TP-1..TP-7)
+
+Every Theme Package MUST satisfy the Theme Package QA standards codified in
+`standards/theme-package-qa.md`. Each rule exists because of a real failure
+during a live install. Never ship a package that violates any of them.
+
+**TP-1 — Section filename length ≤ 22 characters.** Every file in `sections/`
+must have a total filename (including `.liquid`) of no more than 22 characters.
+Target base name ≤ 15 chars to leave headroom. Shopify's "Add a new section"
+dialog silently rejects longer filenames. When the section concept name would
+exceed the limit, shorten at generation time (e.g., `ev-featured-collection`
+→ `ev-featured`, `ev-brand-statement` → `ev-statement`).
+
+**TP-2 — Schema `name` field ≤ 25 characters (ASCII only).** Every `name` key
+inside every `{% schema %}` block — top-level `"name"`, every `presets[].name`,
+every `blocks[].name` — must be 25 characters or fewer. Use ASCII only. Do NOT
+use em-dashes (`—`) or other multi-byte characters; Shopify's length check may
+count bytes, not codepoints. Use plain spaces: `"Elevado Hero"`, not
+`"Elevado — Hero"`.
+
+**TP-3 — Every preset must ship complete default values.** Every preset block
+in every section must include realistic, non-blank default values for every
+user-facing setting the Liquid gates rendering on — headlines, CTAs (both
+label AND link), body copy, eyebrow text. If the Liquid renders a CTA only
+when `cta_label` AND `cta_link` are both truthy, the preset MUST include both.
+No preset may render into a blank or broken-looking section when added from
+the customizer. After generating a section, walk its `presets[].settings` and
+cross-reference against every `settings[]` that the Liquid gates rendering on;
+fail generation if any are missing.
+
+**TP-4 — Font loading via explicit `<link>` tags, never `@import` in CSS.**
+Any package depending on Google Fonts (or any remote font host) MUST ship a
+`snippets/[project]-fonts.liquid` file containing explicit `<link
+rel="preconnect">` and `<link rel="stylesheet">` tags. The README and dev
+handoff must instruct: (1) copy the snippet into `theme/snippets/`, (2)
+`{% render '[project]-fonts' %}` in `layout/theme.liquid` inside `<head>`
+BEFORE the tokens stylesheet tag. `@import url(...)` inside any shipped
+`assets/*.css` is FORBIDDEN — remove before packaging. Shopify's theme preview
+iframe + CSP + asset caching make `@import` unreliable; explicit `<link>` tags
+in `<head>` work deterministically.
+
+**TP-5 — Static preview and Liquid section must share DOM order.** Where a
+Theme Package includes both a static preview HTML page and a Liquid section
+targeting the same surface (hero, featured collection, story, etc.), the DOM
+order of direct children inside the layout wrapper must match. Image-left
+means image-left in both. When writing a Liquid section that corresponds to a
+documented preview surface, mirror the preview's DOM order and add a comment
+block in both files: `DOM order source of truth`.
+
+**TP-6 — Static preview ↔ Shopify install gap must be declared.** The dev
+handoff page and the delivery email must both contain a paragraph stating
+that the static preview is a design *reference*, not a pixel-match of the
+installed Shopify render. The two render through different systems (bespoke
+CSS vs. Dawn + tokens layer on top) and will look close but not identical.
+Include this standing paragraph at generation time in `templates/dev-handoff.md`
+and `comms/delivery-email.md`.
+
+**TP-7 — Live-install on a reference Dawn dev store before delivery.** This
+is a process rule, not a code-generation rule, but the generator must emit a
+reminder in the Theme Package output that the package is NOT shippable until
+it has been installed onto the persistent `cd-qa-store` Partners dev store
+from the just-built ZIP (not from a dev copy of source files), every section
+rendered in the customizer, and screenshots filed under
+`briefs/[slug]/qa/install-screens/`. If any section fails to install or
+renders broken, STOP and fix at source; never patch the live install.
+
+**Enforcement summary.** After Step 7 (AI rules), before declaring the
+package shippable:
+1. Audit every `sections/*.liquid` filename length (TP-1).
+2. Parse every `{% schema %}` block and audit every `name` length + ASCII (TP-2).
+3. Diff every preset's settings against the schema's rendering-gated settings (TP-3).
+4. Grep `@import url` in `assets/tokens.css` — must be zero (TP-4).
+5. Require `snippets/[project]-fonts.liquid` if tokens reference any non-system font (TP-4).
+6. For every `ev-*.liquid` with a matching preview block, compare DOM order (TP-5).
+7. Grep the standing preview-gap phrase in dev-handoff + delivery-email (TP-6).
+8. Emit a "manual: run TP-7 before marking shippable" reminder in the output.
+
+## LAYER 7 — Escalation triggers
 
 FLAG TO ORCHESTRATOR when:
 1. A section type in the brief has no equivalent in the target theme
